@@ -117,7 +117,7 @@
     $this.closest(selector).remove()
   }
   
-  if (typeof Spinner !== 'undefined') { // http://fgnass.github.com/spin.js/
+  if (typeof Spinner !== 'undefined' && $.fn.spin == undefined) { // http://fgnass.github.com/spin.js/
     $.fn.spin = function(opts) {
       this.each(function() {
         var $this = $(this)
@@ -133,6 +133,9 @@
       })
       return this
     }
+    $.fn.spin.presets = {
+      bootstrap_ajax: {lines: 11, length:0, width:6, radius:9, rotate:0, trail:89, speed:1.4}
+    }
   }
   
   function spin($el) { // http://fgnass.github.com/spin.js/
@@ -140,8 +143,8 @@
       var spinner_selector = $el.attr('data-spinner')
         , spinner_selector_replace = $el.attr('data-spinner-replace')
         , spinner_selector_replace_closest = $el.attr('data-spinner-replace-closest')
-        , opts = {lines: 11, length:0, width:6, radius:9, rotate:0, trail:89, speed:1.4}
-        
+        , opts = 'bootstrap_ajax' // Set to preset...
+
         if (spinner_selector) {
           $(spinner_selector).spin(opts)
         } else if (spinner_selector_replace) {
@@ -161,7 +164,7 @@
   }
   
   function processData(data, $el) {
-    if (data.location) {
+    if (data && data.hasOwnProperty('location')) {
       window.location.href = data.location
     } else {
       var replace_selector = $el.attr('data-replace')
@@ -176,7 +179,7 @@
         , remove_selector = $el.attr('data-remove')
         , clear_closest_selector = $el.attr('data-clear-closest')
         , remove_closest_selector = $el.attr('data-remove-closest')
-      
+
       if (replace_selector) {
         $(replace_selector).replaceWith(data.html)
       }
@@ -223,22 +226,22 @@
       }
     }
     
-    if (data.fragments) {
+    if (data && data.fragments) {
       for (var s in data.fragments) {
         $(s).replaceWith(data.fragments[s])
       }
     }
-    if (data['inner-fragments']) {
+    if (data && data['inner-fragments']) {
       for (var i in data['inner-fragments']) {
         $(i).html(data['inner-fragments'][i])
       }
     }
-    if (data['append-fragments']) {
+    if (data && data['append-fragments']) {
       for (var a in data['append-fragments']) {
         $(a).append(data['append-fragments'][a])
       }
     }
-    if (data['prepend-fragments']) {
+    if (data && data['prepend-fragments']) {
       for (var p in data['prepend-fragments']) {
         $(p).prepend(data['prepend-fragments'][p])
       }
