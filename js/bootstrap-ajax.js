@@ -143,6 +143,7 @@
       var spinner_selector = $el.attr('data-spinner')
         , spinner_selector_replace = $el.attr('data-spinner-replace')
         , spinner_selector_replace_closest = $el.attr('data-spinner-replace-closest')
+        , spinner_selector_append = $el.attr('data-spinner-append')
         , opts = 'bootstrap_ajax' // Set to preset...
 
         if (spinner_selector) {
@@ -151,6 +152,8 @@
           $(spinner_selector_replace).html("").spin(opts)
         } else if (spinner_selector_replace_closest) {
           $el.closest(spinner_selector_replace_closest).html("").spin(opts)
+        } else if (spinner_selector_append) {
+          $el.append("").spin(opts)
         } else {
           $el.html("").spin(opts)
         }
