@@ -1,31 +1,39 @@
-# bootstrap-ajax
+# eldarion-ajax
 
-This plugin is designed to work with Twitter Bootstrap to enable declarative AJAX support.
+This is a plugin that Eldarion uses for all of its AJAX work.
 
-No more writing the same 20 line ```$.ajax``` blocks of Javascript over and over again for each snippet of AJAX that you want to support. Easily extend support on the server side code for this by adding a top-level attribute to the JSON you are already returning called ```"html"``` that is the rendered content. Unlike a backbone.js approach to building a web app, bootstrap-ajax leverages server side template rendering engines to render and return HTML fragments.
+[![Build Status](https://travis-ci.org/eldarion/eldarion-ajax.png)](https://travis-ci.org/eldarion/eldarion-ajax)
+
+No more writing the same 20 line ```$.ajax``` blocks of Javascript over and over
+again for each snippet of AJAX that you want to support. Easily extend support
+on the server side code for this by adding a top-level attribute to the JSON you
+are already returning called ```"html"``` that is the rendered content. Unlike a
+backbone.js approach to building a web app, eldarion-ajax leverages server side
+template rendering engines to render and return HTML fragments.
+
+This project used to be called **bootstrap-ajax** but the connection with
+Twitter Bootstrap was tenuous at best so we thought it best to rename to
+*eldarion-ajax*.
 
 ## Demo
 
-There is a demo project at https://github.com/eldarion/bootstrap-ajax-demo/ which is also online at http://uk013.o1.gondor.io/
+There is a demo project at https://github.com/eldarion/eldarion-ajax-demo/ which
+is also online at http://uk013.gondor.co/
 
 
 ## Installation
 
-jQuery is required for this library so make sure it is included somewhere on the page
-prior to the inclusion of ``bootstrap-ajax.js``.
+jQuery is required for this library so make sure it is included somewhere on the
+page prior to the inclusion of ``eldarion-ajax.min.js``.
 
-Copy the files in ```js/bootstrap-ajax.js``` and optionally ```vendor/spin.min.js``` to where
-you keep your web sites static media and the include them in your HTML:
+Copy ```js/eldarion-ajax.min.js``` to where you keep your web sites static 
+media and the include them in your HTML:
 
-```
-<script src="/js/spin.min.js"></script>
-<script src="/js/bootstrap-ajax.js"></script>
-```
-
-The inclusion of ```spin.min.js``` is optional.
+    <script src="/js/eldarion-ajax.js"></script>
 
 
 ## Actions
+
 There are currently three actions supported:
 
 1. ```a.click```
@@ -33,45 +41,144 @@ There are currently three actions supported:
 3. ```a.cancel```
 
 ### ```a.click```
+
 Binding to the ```a``` tag's click event where the tag has the class ```ajax```:
 
-```
-<a href="/tasks/12342/done/" class="btn ajax">
-    <i class="icon icon-check"></i>
-    Done
-</a>
-```
+    <a href="/tasks/12342/done/" class="btn ajax">
+        <i class="icon icon-check"></i>
+        Done
+    </a>
 
 In addition to the ```href``` attribute, you can add ```data-method="post"``` to
 change the default action from an HTTP GET to an HTTP POST.
 
 
 ### ```form.submit```
-Convert any form to an AJAX form submission quite easily by adding ```ajax``` to the
-form's class attribute:
 
-```
-<form class="form ajax" action="/tasks/create/" method="post">...</form>
-```
+Convert any form to an AJAX form submission quite easily by adding ```ajax```
+to the form's class attribute:
 
-When submitting this form, any ```input[type=submit]``` or ```button[type=submit]```
-will be disabled immediately, then the data in the form is serialized and sent to the
-server using the ```method``` that was declared in the ```form``` tag.
+    <form class="form ajax" action="/tasks/create/" method="post">...</form>
+
+When submitting this form the data in the form is serialized and sent to the
+server at the url defined in ```action``` using the ```method``` that was
+declared in the ```form``` tag.
 
 
 ### ```a.cancel```
-Any ```a``` tag that has a ```data-cancel-closest``` attribute defined will trigger
-the cancel event handler. This simply removes from the DOM any elements found using
-the selector defined in the ```data-cancel-closest``` attribute:
 
-```
-<a href="#" data-cancel-closest=".edit-form" class="btn">
-    Cancel
-</a>
-```
+Any ```a``` tag that has a ```data-cancel-closest``` attribute defined will
+trigger the cancel event handler. This simply removes from the DOM any elements
+found using the selector defined in the ```data-cancel-closest``` attribute:
+
+    <a href="#" data-cancel-closest=".edit-form" class="btn">
+        Cancel
+    </a>
 
 
-## Processing Responses
+## Events
+
+There are three custom events that get triggered allowing you to customize the
+behavior of eldarion-ajax.
+
+1. ```eldarion-ajax:begin```
+2. ```eldarion-ajax:success```
+3. ```eldarion-ajax:error```
+4. ```eldarion-ajax:complete```
+5. ```eldarion-ajax:modify-data```
+
+All events are triggered on the element that is declared to be ajax. For example,
+if you had a ```<a href="/tasks/2323/delete/" class="ajax" data-method="post">```
+link, the trigger would be fired on the ```<a>``` element. This, of course,
+bubbles up, but allows you to easily listen only for events on particular tags.
+
+Every event also sends as its first parameter, the element itself, in case you
+were listening at a higher level in the chain, you still would have easy access to
+the relevant node.
+
+
+### ```eldarion-ajax:begin```
+
+This is the first event that fires and does so before any ajax activity starts.
+This allows you to setup a spinner, disable form buttons, etc. before the
+requests starts.
+
+A single argument is sent with this event and is the jQuery object for the node:
+
+    $(document).on("eldarion-ajax:begin", function(evt, $el) {
+        $el.html("Processing...");
+    });
+
+
+### ```eldarion-ajax:success```
+
+This is the event that is triggered once the browser receives a successful
+response (status code 200) from the server. You can handle this in order to
+provide your own processors if the ones that ship by default do not meet your
+needs.
+
+Two arguments are passed with this event, the jQuery object for the node, and
+the JSON data from the server:
+
+    $(document).on("eldarion-ajax:success", [data-prepend-inner], function(evt, $el, data) {
+        var $node = $($el.data("prepend-inner"));
+        $node.data(data.html + $node.html());
+    });
+
+
+### ```eldarion-ajax:error```
+
+This event is triggered for 400, 404, and 500 status codes.
+
+
+### ```eldarion-ajax:complete```
+
+This gets sent on the completion of every ajax request no matter the status
+code and in addition to the events listing above. This is triggered from the
+document rather than the element in context as the handlers processing success
+messages could replace the DOM element and therefore would prevent the event
+from reaching your listener.
+
+It is passed the element (even if it no longer exists in the DOM), a ```jaXHR```
+object, and ```textStatus```.
+
+
+### ```eldarion-ajax:modify-data```
+
+This is triggered with jQuery's `triggerHandler` so it functions more like a
+callback. If you listen for it, you have to listen on the same element that you
+have wired up to send AJAX data on as the event doesn't bubble up. Also, it will
+send the original data that it serialized as a parameter and if you want to
+change the data at all, you must return new data from the function handling the
+event. Otherwise, the original data will be used.
+
+
+## Handlers: A Framework
+
+The events provided above allow you to roll your own handlers in such a way to
+really customize how you want your application to respond to server responses. A
+lot have been provided (see the section below), but here is a quick primer on
+writing your own.
+
+    $(function ($) {
+        CustomHandlers = {};
+        
+        CustomHandlers.prototype.replaceFadeIn = function (e, $el, data) {
+            $($el.data("replace-fade-in")).replaceWith(data.html).hide().fadeIn();
+        };
+        
+        $(function() {
+            $(document).on("eldarion-ajax:success", "[data-replace-fade-in]", CustomHandlers.prototype.replaceFadeIn);
+        });
+    }(window.jQuery));
+
+This gives you a lot of flexibility. For example, if you don't like how the
+batteries included approach treats server response data, you can drop the
+inclusion of ```eldarion-ajax-handlers.js``` and roll your own.
+
+
+## Handlers: Batteries Included
+
 There are three data attributes looked for in the response JSON data:
 
 1. ```location```
@@ -125,8 +232,8 @@ server response's JSON be appended to the elements found in the specified CSS se
 
 ### Refresh
 
-Using the ```data-refresh``` attribute let's you define what elements, if selected by the
-CSS selector specified for it's value, get **_refreshed_**. Elements that are selected will
+Using the ```data-refresh``` attribute lets you define what elements, if selected by the
+CSS selector specified for its value, get **_refreshed_**. Elements that are selected will
 get refreshed with the contents of the url defined in their ```data-refresh-url```
 attribute:
 
@@ -183,11 +290,6 @@ method to interpret the selector.
 It is rare that you'll add/use all of these processing methods combined like this. Usually it will
 just be one or the other, however, I add them all here to illustrate the point that they are
 independently interpreted and executed.
-
-## Spinner
-This is an optional include and provides support to show an activity spinner during the life of the callback.
-
-You can specify where the spinner should be placed (it defaults to the ```a.click``` or ```form.submit``` in question) by declaring ```data-spinner``` with a CSS selector. You can turn it off all together by simply specifying ```off``` as the value instead of a selector.
 
 
 ## Commercial Support
