@@ -46,34 +46,34 @@
         }
     };
     Handlers.prototype.replace = function(e, $el, data) {
-        $($el.data('replace')).replaceWith(data.html);
+        $($el.data('replace')).replaceWith($el.data('data-type') == 'html' ? data : data.html);
     };
     Handlers.prototype.replaceClosest = function(e, $el, data) {
-        $el.closest($el.data('replace-closest')).replaceWith(data.html);
+        $el.closest($el.data('replace-closest')).replaceWith($el.data('data-type') == 'html' ? data : data.html);
     };
     Handlers.prototype.replaceInner = function(e, $el, data) {
-        $($el.data('replace-inner')).html(data.html);
+        $($el.data('replace-inner')).html($el.data('data-type') == 'html' ? data : data.html);
     };
     Handlers.prototype.replaceClosestInner = function(e, $el, data) {
-        $el.closest($el.data('replace-closest-inner')).html(data.html);
+        $el.closest($el.data('replace-closest-inner')).html($el.data('data-type') == 'html' ? data : data.html);
     };
     Handlers.prototype.append = function(e, $el, data) {
-        $($el.data('append')).append(data.html);
+        $($el.data('append')).append($el.data('data-type') == 'html' ? data : data.html);
     };
     Handlers.prototype.prepend = function(e, $el, data) {
-        $($el.data('prepend')).prepend(data.html);
+        $($el.data('prepend')).prepend($el.data('data-type') == 'html' ? data : data.html);
     };
     Handlers.prototype.refresh = function(e, $el) {
         $.each($($el.data('refresh')), function(index, value) {
             $.getJSON($(value).data('refresh-url'), function(data) {
-                $(value).replaceWith(data.html);
+                $(value).replaceWith($el.data('data-type') == 'html' ? data : data.html);
             });
         });
     };
     Handlers.prototype.refreshClosest = function(e, $el) {
         $.each($($el.data('refresh-closest')), function(index, value) {
             $.getJSON($(value).data('refresh-url'), function(data) {
-                $el.closest($(value)).replaceWith(data.html);
+                $el.closest($(value)).replaceWith($el.data('data-type') == 'html' ? data : data.html);
             });
         });
     };

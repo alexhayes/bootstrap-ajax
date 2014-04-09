@@ -41,14 +41,15 @@
 
     Ajax.prototype._ajax = function ($el, url, method, data) {
         $el.trigger('eldarion-ajax:begin', [$el]);
-        var newData = $el.triggerHandler('eldarion-ajax:modify-data', data);
+        var newData = $el.triggerHandler('eldarion-ajax:modify-data', data),
+        	dataType = $el.data('data-type') ? $el.data('data-type') : 'json';
         if (newData) {
             data = newData;
         }
         $.ajax({
             url: url,
             type: method,
-            dataType: 'json',
+            dataType: dataType,
             data: data,
             headers: {'X-Eldarion-Ajax': true},
             statusCode: {
